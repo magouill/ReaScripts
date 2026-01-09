@@ -1,5 +1,5 @@
 -- @description Global Project Lock Watcher (multi-project fix)
--- @version 2.1
+-- @version 2.2
 -- @author magouill
 -- @about
 --   Works globally on REAPER startup.
@@ -27,8 +27,16 @@ local function createLock(proj, projPath)
         local f = io.open(lockFile, "r")
         local contents = f and f:read("*a") or ""
         if f then f:close() end
-        if not contents:find(computer, 1, true) then
-            reaper.ShowMessageBox("Someone's already working in this project!\n\nFuck outta here!", "Project Locked", 0)
+
+         -- Extract PC name from the lock file
+        local otherPC = contents:match("LOCKED by ([^%s]+)")
+        if otherPC and otherPC ~= computer then
+            reaper.ShowMessageBox(
+                "This project is already being worked on by: " .. otherPC .. 
+                "\n\nFuck outta here!", 
+                "Project Locked", 
+                0
+            )
             reaper.Main_OnCommand(40860, 0) -- Close current tab/project only
             return
         end
@@ -36,7 +44,7 @@ local function createLock(proj, projPath)
 
     local f = io.open(lockFile, "w")
     if f then
-        f:write("LOCKED by " .. computer .. " (" .. tostring(proj) .. ") at " .. os.date() .. "\n")
+        f:write("LOCKED by " .. computer .. " at " .. os.date() .. "\n")
         f:close()
         activeLocks[proj] = lockFile
     else
