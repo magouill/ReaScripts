@@ -1,11 +1,12 @@
 -- @description Custom-Speed Playback with Optional Recording (robust toggle)
--- @version 1.3
+-- @version 1.4
 -- @author magouill
 -- @about
 --   Slows playback to CUSTOM_RATE while recording when SWS toggle is ON; 
 --   restores normal rate for normal playback; inactive when toggle is OFF.
+--   Pre-requisite: Dummy SWS Cycle Action saved in the slot to use as the toolbar toggle state button.
 
-local CUSTOM_RATE = 0.75  -- initial default
+local CUSTOM_RATE = 0.85  -- initial default
 local TOGGLE_CMD = "_S&M_CYCLACTION_1"
 local toggle_id = reaper.NamedCommandLookup(TOGGLE_CMD)
 
