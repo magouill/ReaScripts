@@ -7,9 +7,10 @@
 --   Pre-requisite: Dummy SWS Cycle Action saved in the slot to use as the toolbar toggle state button.
 
 local CUSTOM_RATE = 0.85  -- initial default
-local TOGGLE_CMD = "_S&M_CYCLACTION_1"
-local toggle_id = reaper.NamedCommandLookup(TOGGLE_CMD)
+local TOGGLE_CMD = "_S&M_CYCLACTION_1"  -- CycleAction
+local PRESERVE_CMD = reaper.NamedCommandLookup("40671")  -- Transport: Toggle preserve pitch in audio items when changing master playrate
 
+local toggle_id = reaper.NamedCommandLookup(TOGGLE_CMD)
 local prev_recording = false
 local prev_playing = false
 local prev_toggle = false
@@ -21,12 +22,17 @@ function main()
     local playing = ps & 1 == 1
     local current_rate = reaper.Master_GetPlayRate()
 
-    -- If toggle is turned OF, reset playback rate to 1.0 once
+    -- If toggle is turned OFF, reset playback rate to 1.0 once
     if (not toggle_on) and prev_toggle then
         reaper.CSurf_OnPlayRateChange(1.0)
     end
 
     if toggle_on then
+        -- Preserving pitch for items when playrate is changed
+        if reaper.GetToggleCommandStateEx(0, PRESERVE_CMD) ~= 1 then
+            reaper.Main_OnCommand(PRESERVE_CMD, 0)
+        end
+
         if recording and not prev_recording then
             -- Hit RECORD to update slow rate only if current_rate != 1.0
             if current_rate ~= 1.0 then
