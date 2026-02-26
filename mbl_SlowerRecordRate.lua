@@ -51,16 +51,21 @@ local function main()
     local current_rate = reaper.Master_GetPlayRate()
 
     if recording then
-        reaper.CSurf_OnPlayRateChange(CUSTOM_RATE)
+        if current_rate ~= CUSTOM_RATE then
+            reaper.CSurf_OnPlayRateChange(CUSTOM_RATE)
+        end
         prev_mode = "recording"
+
+    elseif playing then
+        if current_rate ~= 1.0 then
+            reaper.CSurf_OnPlayRateChange(1.0)
+        end
+
     elseif prev_mode == "recording" then
         if current_rate ~= 1.0 then
             CUSTOM_RATE = current_rate
-            reaper.SetExtState("SlowerRecordRate", "CUSTOM_RATE", tostring(CUSTOM_RATE), true)
+            reaper.SetExtState(NS, KEY, tostring(CUSTOM_RATE), true)
         end
-    end
-    if playing and not recording then
-        reaper.CSurf_OnPlayRateChange(1.0)
     end
 
     reaper.defer(main)
