@@ -159,39 +159,38 @@ end)
 --------------------------------------------------
 -- WATCH LOOP
 --------------------------------------------------
+local nextCheck = 0
+
 local function watchProjects()
-
     local now = reaper.time_precise()
-    if now - lastCheck < CHECK_INTERVAL then
-        reaper.defer(watchProjects)
-        return
-    end
 
-    lastCheck = now
+    if now >= nextCheck then
+        nextCheck = now + CHECK_INTERVAL
 
-    local newActive = {}
+        local newActive = {}
 
-    local i = 0
-    while true do
-        local proj, path = reaper.EnumProjects(i, "")
-        if not proj then break end
+        local i = 0
+        while true do
+            local proj, path = reaper.EnumProjects(i, "")
+            if not proj then break end
 
-        if path and path ~= "" then
-            path = normalizePath(path)
-            newActive[proj] = path
+            if path and path ~= "" then
+                path = normalizePath(path)
+                newActive[proj] = path
 
-            if not activeLocks[proj] then
-                createLock(proj, path)
+                if not activeLocks[proj] then
+                    createLock(proj, path)
+                end
             end
+
+            i = i + 1
         end
 
-        i = i + 1
-    end
-
-    -- Remove locks from closed projects
-    for proj, _ in pairs(activeLocks) do
-        if not newActive[proj] then
-            removeLock(proj)
+        -- Remove locks from closed projects
+        for proj, _ in pairs(activeLocks) do
+            if not newActive[proj] then
+                removeLock(proj)
+            end
         end
     end
 
